@@ -1,0 +1,49 @@
+services:
+  app:
+    build: .
+    env_file: .env
+    environment:
+      PUBLIC_URL: https://${ORBIT_DOMAIN:?Configure ORBIT_DOMAIN}
+      ORBIT_DATA_DIR: /app/server/data
+      ORBIT_DATABASE_PATH: /app/server/data/orbit.sqlite3
+      ORBIT_IMPORT_DIRECTORY: /app/server/data/imports
+      OLLAMA_BASE_URL: http://ollama:11434
+      ORBIT_OLLAMA_ALLOWED_HOSTS: ollama
+    volumes:
+      - orbit_data:/app/server/data
+      - whisper_cache:/home/orbit/.cache
+    restart: unless-stopped
+    expose:
+      - "8787"
+  proxy:
+    image: caddy:2-alpine
+    environment:
+      ORBIT_DOMAIN: ${ORBIT_DOMAIN:?Configure ORBIT_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+  ollama:
+    image: ollama/ollama:0.40.16
+    profiles: [local-ai]
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_VULKAN: "false"
+      CUDA_VISIBLE_DEVICES: "-1"
+      ROCR_VISIBLE_DEVICES: "-1"
+    volumes:
+      - ollama_data:/root/.ollama
+    expose:
+      - "11434"
+    restart: unless-stopped
+volumes:
+  orbit_data:
+  whisper_cache:
+  caddy_data:
+  caddy_config:
+  ollama_data:

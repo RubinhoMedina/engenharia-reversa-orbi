@@ -1,0 +1,27 @@
+name: Verificar Orbit
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: npm ci
+      - run: npm run build
+      - run: npm ci --prefix supabase/test-runtime
+      - run: npm test --prefix supabase/test-runtime
+      - run: python -m pip install "cryptography>=44,<51" "pywebpush>=2.5,<3"
+      - run: python -m unittest discover -s server

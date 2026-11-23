@@ -1,0 +1,10 @@
+.git
+.venv
+node_modules
+dist
+.env
+*.sqlite*
+server/data
+server/__pycache__
+*.tsbuildinfo
+research.mjs
